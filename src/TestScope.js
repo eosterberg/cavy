@@ -37,6 +37,7 @@ export default class TestScope {
       await this.pause(this.startDelay);
     }
 
+    var testsPassed = true
     const start = new Date();
     var message = `Cavy test suite started at ${start}.`;
     console.log(message);
@@ -51,6 +52,7 @@ export default class TestScope {
         console.log(`${description}  ✅`);
       } catch (e) {
         message = `${description}  ❌\n   ${e.message}`;
+        testsPassed = false
         console.warn(message);
         if (this.notifier) {
           await this.notifier(message)
@@ -62,9 +64,12 @@ export default class TestScope {
 
     const stop = new Date();
     const duration = (stop - start) / 1000;
-    console.log(`Cavy test suite stopped at ${stop}, duration: ${duration} seconds.`);
+    message = `Cavy test suite stopped at ${stop}, duration: ${duration} seconds.`;
+    if (testsPassed) message += '\nAll tests passed! 🥇'
+    else message += '\nTests failed! 💣'
+    console.log(message);
     if (this.notifier) {
-      await this.notifier(`Cavy test suite stopped at ${stop}, duration: ${duration} seconds.`)
+      await this.notifier(message)
     }
 
   }
