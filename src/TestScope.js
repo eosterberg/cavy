@@ -26,6 +26,8 @@ export default class TestScope {
     this.run.bind(this);
   }
 
+
+
   // Internal: Synchronously run each test case one after the other, outputting
   // on the console if the test case passes or fails. Also resets the app
   // after each test case by changing the component key to force React to
@@ -36,9 +38,10 @@ export default class TestScope {
     }
 
     const start = new Date();
-    console.log(`Cavy test suite started at ${start}.`);
+    var message = `Cavy test suite started at ${start}.`;
+    console.log(message);
     if (this.notifier) {
-      await this.notifier(`Cavy test suite started at ${start}.`)
+      await this.notifier(message)
     }
 
     for (let i = 0; i < this.testCases.length; i++) {
@@ -47,9 +50,10 @@ export default class TestScope {
         await f.call(this);
         console.log(`${description}  ✅`);
       } catch (e) {
-        console.warn(`${description}  ❌\n   ${e.message}`);
+        message = `${description}  ❌\n   ${e.message}`;
+        console.warn(message);
         if (this.notifier) {
-          await this.notifier(`${description}  ❌\n   ${e.message}`)
+          await this.notifier(message)
         }
       }
       await this.component.clearAsync();
