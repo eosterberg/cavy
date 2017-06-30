@@ -12,7 +12,7 @@ class ComponentNotFoundError extends Error {
 
 export default class TestScope {
 
-  constructor(component, waitTime, startDelay) {
+  constructor(component, waitTime, startDelay, notifier) {
     this.component = component;
     this.testHooks = component.testHookStore;
 
@@ -20,6 +20,8 @@ export default class TestScope {
 
     this.waitTime = waitTime;
     this.startDelay = startDelay;
+
+    this.notifier = notifier
 
     this.run.bind(this);
   }
@@ -32,9 +34,12 @@ export default class TestScope {
     if (this.startDelay) {
       await this.pause(this.startDelay);
     }
-    
+
     const start = new Date();
     console.log(`Cavy test suite started at ${start}.`);
+    if (this.notifier) {
+      await this.notifier(`Cavy test suite started at ${start}.`)
+    }
 
     for (let i = 0; i < this.testCases.length; i++) {
       let {description, f} = this.testCases[i];
@@ -43,6 +48,9 @@ export default class TestScope {
         console.log(`${description}  ✅`);
       } catch (e) {
         console.warn(`${description}  ❌\n   ${e.message}`);
+        if (this.notifier) {
+          await this.notifier(`${description}  ❌\n   ${e.message}`)
+        }
       }
       await this.component.clearAsync();
       this.component.reRender();
@@ -51,6 +59,10 @@ export default class TestScope {
     const stop = new Date();
     const duration = (stop - start) / 1000;
     console.log(`Cavy test suite stopped at ${stop}, duration: ${duration} seconds.`);
+    if (this.notifier) {
+      await this.notifier(`Cavy test suite stopped at ${stop}, duration: ${duration} seconds.`)
+    }
+
   }
 
   // Public: Find a component by its test hook identifier. Waits
@@ -136,7 +148,7 @@ export default class TestScope {
   // Returns a promise, use await when calling this function. Promise will be
   // rejected if the component is not found.
   async fillIn(identifier, str) {
-    const component =  await this.findComponent(identifier);
+    const component = await this.findComponent(identifier);
     component.props.onChangeText(str);
   }
 
@@ -159,13 +171,9 @@ export default class TestScope {
   //
   // Returns a promise, use await when calling this function.
   async pause(time) {
-    let promise = new Promise((resolve, reject) => {
-      setTimeout(function() {
-        resolve();
-      }, time);
+    return new Promise((resolve) => {
+      setTimeout(resolve, time);
     });
-
-    return promise;
   }
 
   // Public: Check a component exists.
